@@ -1,0 +1,9 @@
+[2025-11-21 00:13:09] INFO: Iniciando procesamiento del archivo: archivo.txt
+[2025-11-21 00:13:09] INFO: Leyendo contenido del archivo...
+[2025-11-21 00:13:09] SUCCESS: Archivo leído correctamente. Total de líneas: 3
+[2025-11-21 00:13:09] INFO: Aplicando transformaciones funcionales...
+[2025-11-21 00:13:09] INFO: Líneas que contienen 'Groovy': 2
+[2025-11-21 00:13:09] INFO: Total de caracteres procesados: 142
+[2025-11-21 00:13:10] INFO: Escribiendo archivo transformado: src/main/resources/input/copy_archivo.txt
+[2025-11-21 00:13:10] SUCCESS: Archivo procesado y guardado exitosamente: src/main/resources/input/copy_archivo.txt
+[2025-11-21 00:13:10] INFO: Proceso completado

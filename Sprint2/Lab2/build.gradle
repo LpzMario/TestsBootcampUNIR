@@ -1,0 +1,35 @@
+plugins {
+    id 'groovy'
+    id 'application'
+}
+
+group = 'com.lab2'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.groovy:groovy-all:4.0.23'
+}
+
+application {
+    mainClass = 'org.example.Main'
+}
+
+run {
+    args = ['archivo.txt']
+    workingDir = projectDir
+}
+
+// Forzar compatibilidad con la versión actual de Java
+compileGroovy {
+    targetCompatibility = JavaVersion.current()
+    sourceCompatibility = JavaVersion.current()
+}
+
+compileJava {
+    targetCompatibility = JavaVersion.current()
+    sourceCompatibility = JavaVersion.current()
+}

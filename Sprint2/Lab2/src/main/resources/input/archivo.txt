@@ -1,0 +1,3 @@
+Línea 1: Este es un ejemplo de archivo.
+Línea 2: Groovy es perfecto para procesamiento de archivos.
+Línea 3: ¡Programación funcional con Groovy!
