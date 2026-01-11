@@ -1,0 +1,37 @@
+---
+- name: Instalar NGINX
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Eliminar configuración por defecto
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Crear configuración de NGINX para Blue-Green
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/bluegreen
+    mode: '0644'
+  notify: reload nginx
+
+- name: Habilitar configuración
+  file:
+    src: /etc/nginx/sites-available/bluegreen
+    dest: /etc/nginx/sites-enabled/bluegreen
+    state: link
+  notify: reload nginx
+
+- name: Asegurar que NGINX está corriendo
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Verificar configuración de NGINX
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+  failed_when: nginx_test.rc != 0

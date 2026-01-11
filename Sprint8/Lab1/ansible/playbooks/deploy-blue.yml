@@ -1,0 +1,45 @@
+
+---
+- name: Desplegar MySQL
+  hosts: mysql
+  become: yes
+  roles:
+    - mysql
+
+- name: Desplegar aplicación en entorno BLUE
+  hosts: blue
+  become: yes
+  vars:
+    environment: blue
+    deploy_path: "{{ app_blue_path }}"
+    app_port: "{{ app_port_blue }}"
+    service_name: "spring-app-blue"
+  roles:
+    - spring-app
+
+- name: Configurar NGINX apuntando a BLUE
+  hosts: nginx
+  become: yes
+  vars:
+    upstream_host: blue-server
+    upstream_port: "{{ app_port_blue }}"
+    active_environment: blue
+  roles:
+    - nginx
+
+- name: Verificar despliegue BLUE
+  hosts: nginx
+  become: yes
+  tasks:
+    - name: Probar endpoint /hola a través de NGINX
+      uri:
+        url: "http://localhost:{{ nginx_port }}/hola"
+        return_content: yes
+      register: response
+      retries: 5
+      delay: 3
+      until: response.status == 200
+
+    - name: Mostrar respuesta
+      debug:
+        msg: "Respuesta del endpoint /hola: {{ response.content }}"

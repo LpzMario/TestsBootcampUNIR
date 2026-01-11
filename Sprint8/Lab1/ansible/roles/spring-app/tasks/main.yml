@@ -1,0 +1,44 @@
+---
+- name: Instalar Java
+  apt:
+    name: openjdk-17-jre-headless
+    state: present
+    update_cache: yes
+
+- name: Crear directorio de despliegue
+  file:
+    path: "{{ deploy_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Copiar JAR de la aplicación
+  copy:
+    src: "../../../spring-app/target/{{ app_jar }}"
+    dest: "{{ deploy_path }}/{{ app_jar }}"
+    mode: '0644'
+
+- name: Crear archivo de variables de entorno
+  template:
+    src: app.env.j2
+    dest: "{{ deploy_path }}/app.env"
+    mode: '0600'
+
+- name: Crear servicio systemd para la aplicación
+  template:
+    src: spring-app.service.j2
+    dest: "/etc/systemd/system/{{ service_name }}.service"
+    mode: '0644'
+  notify: reload systemd
+
+- name: Habilitar e iniciar el servicio
+  systemd:
+    name: "{{ service_name }}"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Esperar a que la aplicación esté lista
+  wait_for:
+    port: "{{ app_port }}"
+    delay: 5
+    timeout: 60

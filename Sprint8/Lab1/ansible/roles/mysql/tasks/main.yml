@@ -1,0 +1,46 @@
+---
+- name: Instalar paquetes necesarios para MySQL
+  apt:
+    name:
+      - mysql-server
+      - python3-pymysql
+    state: present
+    update_cache: yes
+
+- name: Asegurar que MySQL está corriendo
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Configurar MySQL para escuchar en todas las interfaces
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = 0.0.0.0'
+    backup: yes
+  notify: restart mysql
+
+- name: Crear base de datos
+  mysql_db:
+    name: "{{ mysql_database }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Crear usuario de la aplicación
+  mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_password }}"
+    priv: "{{ mysql_database }}.*:ALL"
+    host: '%'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Permitir acceso remoto al usuario root
+  mysql_user:
+    name: root
+    password: "{{ mysql_root_password }}"
+    host: '%'
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock

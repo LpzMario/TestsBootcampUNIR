@@ -1,0 +1,53 @@
+---
+- name: Hacer ROLLBACK de GREEN a BLUE
+  hosts: nginx
+  become: yes
+  vars:
+    upstream_host: blue-server
+    upstream_port: "{{ app_port_blue }}"
+    active_environment: blue
+  tasks:
+    - name: Verificar que BLUE está respondiendo antes del rollback
+      uri:
+        url: "http://blue-server:{{ app_port_blue }}/health"
+        return_content: yes
+      register: health_check
+      failed_when: health_check.status != 200
+
+    - name: Revertir configuración de NGINX para apuntar a BLUE
+      template:
+        src: ../roles/nginx/templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/bluegreen
+        mode: '0644'
+      notify: reload nginx
+
+    - name: Recargar NGINX
+      service:
+        name: nginx
+        state: reloaded
+
+    - name: Esperar a que NGINX aplique los cambios
+      wait_for:
+        timeout: 3
+
+    - name: Verificar que el tráfico volvió a BLUE
+      uri:
+        url: "http://localhost:{{ nginx_port }}/hola"
+        return_content: yes
+      register: response
+
+    - name: Confirmar rollback exitoso
+      debug:
+        msg:
+          - "=========================================="
+          - "¡ROLLBACK EXITOSO!"
+          - "El tráfico volvió a BLUE"
+          - "Respuesta: {{ response.content }}"
+          - "GREEN sigue corriendo por si necesitas investigar"
+          - "=========================================="
+
+  handlers:
+    - name: reload nginx
+      service:
+        name: nginx
+        state: reloaded

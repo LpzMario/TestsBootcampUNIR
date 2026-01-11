@@ -1,0 +1,54 @@
+---
+- name: Cambiar tráfico de BLUE a GREEN
+  hosts: nginx
+  become: yes
+  vars:
+    upstream_host: green-server
+    upstream_port: "{{ app_port_green }}"
+    active_environment: green
+  tasks:
+    - name: Verificar que GREEN está respondiendo antes del cambio
+      uri:
+        url: "http://green-server:{{ app_port_green }}/health"
+        return_content: yes
+      register: health_check
+      failed_when: health_check.status != 200
+
+    - name: Actualizar configuración de NGINX para apuntar a GREEN
+      template:
+        src: ../roles/nginx/templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/bluegreen
+        mode: '0644'
+      notify: reload nginx
+
+    - name: Recargar NGINX
+      service:
+        name: nginx
+        state: reloaded
+
+    - name: Esperar a que NGINX aplique los cambios
+      wait_for:
+        timeout: 3
+
+    - name: Verificar que el tráfico va a GREEN
+      uri:
+        url: "http://localhost:{{ nginx_port }}/hola"
+        return_content: yes
+      register: response
+
+    - name: Confirmar cambio exitoso
+      debug:
+        msg:
+          - "=========================================="
+          - "¡CAMBIO EXITOSO!"
+          - "El tráfico ahora va a GREEN"
+          - "Respuesta: {{ response.content }}"
+          - "Para hacer rollback a BLUE ejecuta:"
+          - "ansible-playbook playbooks/rollback-to-blue.yml"
+          - "=========================================="
+
+  handlers:
+    - name: reload nginx
+      service:
+        name: nginx
+        state: reloaded

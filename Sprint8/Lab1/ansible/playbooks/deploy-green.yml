@@ -1,0 +1,39 @@
+---
+- name: Desplegar aplicación en entorno GREEN (sin afectar tráfico)
+  hosts: green
+  become: yes
+  vars:
+    environment: green
+    deploy_path: "{{ app_green_path }}"
+    app_port: "{{ app_port_green }}"
+    service_name: "spring-app-green"
+  roles:
+    - spring-app
+
+- name: Verificar que GREEN está funcionando
+  hosts: green
+  become: yes
+  tasks:
+    - name: Probar endpoint /hola directamente en GREEN
+      uri:
+        url: "http://localhost:{{ app_port_green }}/hola"
+        return_content: yes
+      register: response
+      retries: 5
+      delay: 3
+      until: response.status == 200
+
+    - name: Mostrar respuesta de GREEN
+      debug:
+        msg: "GREEN está listo. Respuesta: {{ response.content }}"
+
+    - name: Información importante
+      debug:
+        msg: 
+          - "=========================================="
+          - "El entorno GREEN ha sido desplegado"
+          - "Está corriendo en el puerto {{ app_port_green }}"
+          - "El tráfico sigue yendo a BLUE"
+          - "Para cambiar el tráfico a GREEN ejecuta:"
+          - "ansible-playbook playbooks/switch-to-green.yml"
+          - "=========================================="

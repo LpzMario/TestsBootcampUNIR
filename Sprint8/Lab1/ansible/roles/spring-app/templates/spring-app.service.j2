@@ -1,0 +1,15 @@
+[Unit]
+Description=Spring Boot Application - {{ environment }}
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory={{ deploy_path }}
+EnvironmentFile={{ deploy_path }}/app.env
+ExecStart=/usr/bin/java -jar {{ deploy_path }}/{{ app_jar }}
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

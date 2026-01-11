@@ -1,0 +1,23 @@
+---
+# Variables de la aplicación Spring Boot
+app_name: holamundo
+app_jar: holamundo-0.0.1-SNAPSHOT.jar
+app_port_blue: 8080
+app_port_green: 8081
+
+# Variables de MySQL (usa variables de entorno en producción)
+mysql_root_password: "{{ lookup('env', 'MYSQL_ROOT_PASSWORD') | default('rootpassword123', true) }}"
+mysql_database: "{{ lookup('env', 'MYSQL_DATABASE') | default('holamundo_db', true) }}"
+mysql_user: "{{ lookup('env', 'MYSQL_USER') | default('appuser', true) }}"
+mysql_password: "{{ lookup('env', 'MYSQL_PASSWORD') | default('apppassword123', true) }}"
+mysql_host: mysql-server
+mysql_port: 3306
+
+# Variables de NGINX
+nginx_port: 80
+active_environment: blue
+
+# Rutas de despliegue
+app_deploy_path: /opt/{{ app_name }}
+app_blue_path: "{{ app_deploy_path }}/blue"
+app_green_path: "{{ app_deploy_path }}/green"

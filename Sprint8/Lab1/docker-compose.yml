@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Servidor MySQL
+  mysql-server:
+    image: mysql:8.0
+    container_name: mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword123
+      MYSQL_DATABASE: holamundo_db
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - bluegreen-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Servidor BLUE
+  blue-server:
+    image: ubuntu:22.04
+    container_name: blue-server
+    command: /bin/bash -c "apt-get update && apt-get install -y openssh-server python3 sudo && mkdir -p /run/sshd && echo 'root:password' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && /usr/sbin/sshd -D"
+    ports:
+      - "2222:22"
+      - "8080:8080"
+    networks:
+      - bluegreen-network
+    depends_on:
+      - mysql-server
+
+  # Servidor GREEN
+  green-server:
+    image: ubuntu:22.04
+    container_name: green-server
+    command: /bin/bash -c "apt-get update && apt-get install -y openssh-server python3 sudo && mkdir -p /run/sshd && echo 'root:password' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && /usr/sbin/sshd -D"
+    ports:
+      - "2223:22"
+      - "8081:8081"
+    networks:
+      - bluegreen-network
+    depends_on:
+      - mysql-server
+
+  # Servidor NGINX
+  nginx-server:
+    image: ubuntu:22.04
+    container_name: nginx-server
+    command: /bin/bash -c "apt-get update && apt-get install -y openssh-server python3 sudo && mkdir -p /run/sshd && echo 'root:password' | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && /usr/sbin/sshd -D"
+    ports:
+      - "2224:22"
+      - "80:80"
+    networks:
+      - bluegreen-network
+    depends_on:
+      - blue-server
+      - green-server
+
+volumes:
+  mysql_data:
+
+networks:
+  bluegreen-network:
+    driver: bridge
