@@ -1,0 +1,12 @@
+# Política de Vault para la aplicación webapp
+# Este archivo define qué secretos puede leer el ServiceAccount
+
+# Permitir lectura del secreto webapp/config
+path "secret/data/webapp/config" {
+  capabilities = ["read"]
+}
+
+# Permitir listar secretos en el path webapp
+path "secret/metadata/webapp/*" {
+  capabilities = ["list"]
+}

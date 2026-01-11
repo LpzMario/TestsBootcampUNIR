@@ -1,0 +1,53 @@
+# Configuración de Vault para Helm
+# Este archivo configura Vault en modo desarrollo para facilitar las pruebas
+
+server:
+  # Modo desarrollo - NO usar en producción
+  dev:
+    enabled: true
+    devRootToken: "root"
+  
+  # Configuración de recursos
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  # Configuración del servicio
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8200
+
+  # Habilitar la UI de Vault
+  ui:
+    enabled: true
+    serviceType: ClusterIP
+
+# Configuración del Vault Agent Injector
+# Este componente intercepta pods y les inyecta el agente de Vault
+injector:
+  enabled: true
+  
+  # Recursos para el injector
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+  
+  # Registro de logs
+  logLevel: "info"
+  
+  # Política de fallo - fail significa que si el injector falla, el pod no se crea
+  failurePolicy: Fail
+
+# Configuración global
+global:
+  enabled: true
+  tlsDisable: true  # Deshabilitar TLS para el demo (NO usar en producción)

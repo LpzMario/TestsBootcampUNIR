@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  namespace: vault-demo
+  labels:
+    app: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+      annotations:
+        # Anotaciones de Vault para inyección de secretos
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "webapp"
+        vault.hashicorp.com/agent-inject-secret-database-config.txt: "secret/data/webapp/config"
+        vault.hashicorp.com/agent-inject-template-database-config.txt: |
+          {{- with secret "secret/data/webapp/config" -}}
+          username: {{ .Data.data.username }}
+          password: {{ .Data.data.password }}
+          {{- end -}}
+    spec:
+      serviceAccountName: vault-auth
+      containers:
+      - name: webapp
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - |
+            echo "Iniciando aplicación web..."
+            echo "Esperando a que el secreto esté disponible..."
+            
+            # Esperar a que el archivo de secreto exista
+            while [ ! -f /vault/secrets/database-config.txt ]; do
+              echo "Esperando el archivo de secreto..."
+              sleep 2
+            done
+            
+            echo "¡Secreto cargado correctamente!"
+            echo "Contenido del secreto:"
+            cat /vault/secrets/database-config.txt
+            echo ""
+            echo "===================="
+            echo "Aplicación iniciada con éxito"
+            echo "El secreto ha sido inyectado por Vault"
+            echo "Verificar que NO aparece en el descriptor YAML"
+            echo "===================="
+            
+            # Iniciar nginx en segundo plano
+            nginx -g 'daemon off;' &
+            
+            # Mantener el contenedor corriendo y mostrar el secreto cada 30 segundos
+            while true; do
+              sleep 30
+              echo "$(date): Secreto sigue disponible en /vault/secrets/database-config.txt"
+            done
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  namespace: vault-demo
+spec:
+  selector:
+    app: webapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

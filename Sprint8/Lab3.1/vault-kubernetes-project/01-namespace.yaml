@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vault-demo
+  labels:
+    name: vault-demo
+    purpose: vault-integration-demo
