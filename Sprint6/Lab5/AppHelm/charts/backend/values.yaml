@@ -1,0 +1,30 @@
+# Valores por defecto para el subchart de Backend
+# Estos valores pueden ser sobrescritos desde el values.yaml principal
+
+replicaCount: 2
+
+image:
+  repository: node
+  tag: "18-alpine"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: DB_HOST
+    value: "apphelm-database"
+  - name: DB_PORT
+    value: "5432"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi

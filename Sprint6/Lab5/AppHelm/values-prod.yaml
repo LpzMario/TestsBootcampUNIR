@@ -1,0 +1,99 @@
+# Configuración para entorno de PRODUCCIÓN
+# Características: alta disponibilidad, más recursos, servicios internos
+
+global:
+  namespace: apphelm-prod
+
+# ===== FRONTEND - PROD =====
+frontend:
+  enabled: true
+  replicaCount: 3  # Múltiples réplicas para alta disponibilidad
+  
+  image:
+    repository: nginx
+    tag: "1.25-alpine"  # Versión estable específica
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: LoadBalancer  # LoadBalancer para acceso público en producción
+    port: 80
+    targetPort: 80
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# ===== BACKEND - PROD =====
+backend:
+  enabled: true
+  replicaCount: 3  # Múltiples réplicas para alta disponibilidad
+  
+  image:
+    repository: node
+    tag: "18-alpine"  # Versión estable específica
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP  # Servicio interno, no expuesto directamente
+    port: 3000
+    targetPort: 3000
+  
+  env:
+    - name: NODE_ENV
+      value: "production"
+    - name: DB_HOST
+      value: "apphelm-database"
+    - name: DB_PORT
+      value: "5432"
+    - name: LOG_LEVEL
+      value: "info"
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+# ===== DATABASE - PROD =====
+database:
+  enabled: true
+  replicaCount: 1  # Base de datos en modo standalone (considerar StatefulSet para HA)
+  
+  image:
+    repository: postgres
+    tag: "15-alpine"  # Versión estable específica
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP  # Servicio interno solamente
+    port: 5432
+    targetPort: 5432
+  
+  env:
+    - name: POSTGRES_DB
+      value: "apphelmdb_prod"
+    - name: POSTGRES_USER
+      value: "produser"
+    - name: POSTGRES_PASSWORD
+      value: "SecureP@ssw0rd2024!"  # En producción real, usar Secrets
+  
+  persistence:
+    enabled: true
+    storageClass: "fast-ssd"  # Clase de almacenamiento de alto rendimiento
+    accessMode: ReadWriteOnce
+    size: 20Gi  # Mayor almacenamiento en producción
+    mountPath: /var/lib/postgresql/data
+  
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi

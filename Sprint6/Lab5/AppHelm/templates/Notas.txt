@@ -1,0 +1,49 @@
+===============================================================================
+                    DESPLIEGUE DE APPHELM COMPLETADO
+===============================================================================
+
+La aplicación AppHelm se ha desplegado correctamente en el cluster.
+
+Verifica el estado del despliegue con:
+  helm status {{ .Release.Name }}
+
+-------------------------------------------------------------------------------
+COMANDOS UTILES
+-------------------------------------------------------------------------------
+
+Obtener todos los pods:
+  kubectl get pods -n {{ .Release.Namespace }}
+
+Obtener todos los servicios:
+  kubectl get svc -n {{ .Release.Namespace }}
+
+Ver logs del frontend:
+  kubectl logs -f deployment/{{ .Release.Name }}-frontend -n {{ .Release.Namespace }}
+
+Ver logs del backend:
+  kubectl logs -f deployment/{{ .Release.Name }}-backend -n {{ .Release.Namespace }}
+
+Ver logs de la base de datos:
+  kubectl logs -f deployment/{{ .Release.Name }}-database -n {{ .Release.Namespace }}
+
+Verificar volúmenes persistentes:
+  kubectl get pvc -n {{ .Release.Namespace }}
+
+-------------------------------------------------------------------------------
+ACCESO A LA APLICACION
+-------------------------------------------------------------------------------
+
+Para acceder al frontend de la aplicación, utiliza uno de los siguientes métodos:
+
+1. Reenvío de puertos (acceso local):
+   kubectl port-forward svc/{{ .Release.Name }}-frontend 8080:80 -n {{ .Release.Namespace }}
+   Luego visita: http://localhost:8080
+
+2. Obtener detalles del servicio:
+   kubectl get svc {{ .Release.Name }}-frontend -n {{ .Release.Namespace }}
+
+-------------------------------------------------------------------------------
+
+Para más información y opciones de configuración, consulta el archivo README.md.
+
+===============================================================================

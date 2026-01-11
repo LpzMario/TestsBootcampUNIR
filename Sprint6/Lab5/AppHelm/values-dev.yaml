@@ -1,0 +1,102 @@
+# Configuración para entorno de DESARROLLO
+# Características: menos recursos, acceso externo, imágenes latest
+
+global:
+  namespace: apphelm-dev
+
+# ===== FRONTEND - DEV =====
+frontend:
+  enabled: true
+  replicaCount: 1  # Solo 1 réplica en desarrollo
+  
+  image:
+    repository: nginx
+    tag: "latest"  # Versión latest para desarrollo
+    pullPolicy: Always  # Siempre obtener la última imagen
+  
+  service:
+    type: NodePort  # Accesible desde fuera del cluster
+    port: 80
+    targetPort: 80
+    nodePort: 30080  # Puerto específico para acceso externo
+  
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# ===== BACKEND - DEV =====
+backend:
+  enabled: true
+  replicaCount: 1  # Solo 1 réplica en desarrollo
+  
+  image:
+    repository: node
+    tag: "latest"  # Versión latest para desarrollo
+    pullPolicy: Always
+  
+  service:
+    type: NodePort  # Accesible desde fuera del cluster
+    port: 3000
+    targetPort: 3000
+    nodePort: 30300  # Puerto específico para acceso externo
+  
+  env:
+    - name: NODE_ENV
+      value: "development"
+    - name: DB_HOST
+      value: "apphelm-database"
+    - name: DB_PORT
+      value: "5432"
+    - name: DEBUG
+      value: "true"
+  
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# ===== DATABASE - DEV =====
+database:
+  enabled: true
+  replicaCount: 1
+  
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: NodePort  # Accesible para pruebas locales
+    port: 5432
+    targetPort: 5432
+    nodePort: 30432
+  
+  env:
+    - name: POSTGRES_DB
+      value: "apphelmdb_dev"
+    - name: POSTGRES_USER
+      value: "devuser"
+    - name: POSTGRES_PASSWORD
+      value: "devpass123"
+  
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 2Gi  # Menos almacenamiento en desarrollo
+    mountPath: /var/lib/postgresql/data
+  
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

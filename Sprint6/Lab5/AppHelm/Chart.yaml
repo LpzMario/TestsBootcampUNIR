@@ -1,0 +1,25 @@
+apiVersion: v2
+name: apphelm
+description: Chart de Helm para despliegue modular de aplicación completa con frontend, backend y base de datos
+type: application
+version: 1.0.0
+appVersion: "1.0"
+keywords:
+  - application
+  - microservices
+  - frontend
+  - backend
+  - database
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+dependencies:
+  - name: frontend
+    version: "1.0.0"
+    repository: "file://./charts/frontend"
+  - name: backend
+    version: "1.0.0"
+    repository: "file://./charts/backend"
+  - name: database
+    version: "1.0.0"
+    repository: "file://./charts/database"
